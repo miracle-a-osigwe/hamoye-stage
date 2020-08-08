@@ -1,18 +1,6 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# # HAMOYE STAGE C
-# LESSON 1
-# LOGISTIC REGRESSION
-
-# In[4]:
-
-
+#import the libraries
 import pandas as pd
 import numpy as np
-
-
-# In[5]:
 
 
 #using python to download the dataset (uncomment the codes below and execute them)
@@ -21,47 +9,23 @@ import numpy as np
 #filename = 'dataworld.csv'
 #urllib.request.urlretrieve(url, filename)
 
-
-# In[6]:
-
-
 #using pandas to download the dataset (uncomment the code below and execute them)
 #df = pd.read_csv('https://query.data.world/s/wh6j7rxy2hvrn4ml75ci62apk5hgae')
 #df.to_csv('dataset.csv')
-
-
-# In[7]:
-
 
 #load the dataset
 df = pd.read_csv('dataset.csv', low_memory=False)
 df.head()
 
-
-# In[8]:
-
-
 #drop the unnamed column
 
 df.drop('Unnamed: 0', axis = 1, inplace = True)
 
-
-# In[9]:
-
-
 #check distribution of target variable
 df['QScore'].value_counts()
 
-
-# In[10]:
-
-
 #checking for null values in the dataset
 df.isna().sum()
-
-
-# In[11]:
-
 
 #for simplicity, we will drop the rows with missing values.
 df.dropna(inplace = True)
@@ -72,24 +36,12 @@ df.isna().sum()
 #Oversampling involves increasing the number of instances in the class with fewer instances while undersampling 
 #involves reducing the data points in the class with more instances.
 
-
-# In[12]:
-
-
 #reset the dataframe index
 df = df.reset_index(drop = True)
-
-
-# In[13]:
-
 
 #For now, we will convert this to a binary classification problem by combining class '2A' and '1A'.
 df['QScore'] = df['QScore'].replace(['1A'], '2A')
 df.QScore.value_counts()
-
-
-# In[14]:
-
 
 #separating the target variable and 
 #selecting some samples
@@ -98,10 +50,7 @@ df_3A = df[df.QScore=='3A'].sample(350)
 data_df = df_2A.append(df_3A)
 data_df
 
-
-# In[15]:
-
-
+#to reshuffle the dataset for randomness
 import sklearn.utils
 data_df = sklearn.utils.shuffle(data_df)
 data_df = data_df.reset_index(drop=True)
@@ -109,64 +58,33 @@ data_df.shape
 data_df.QScore.value_counts()
 
 
-# In[16]:
-
-
 #check the datatype of the dataset
 data_df.dtypes
-
-
-# In[17]:
-
 
 # from the above, we will be dropping country code, country and year
 #because they are ambiguous to what we want to predict
 #and also we will encode the record feature
-
-
-# In[18]:
-
 
 #One of the feature is categorical, so we need to encode it ahead 
 from sklearn.preprocessing import LabelEncoder
 encoder = LabelEncoder()
 data_df.record = encoder.fit_transform(data_df.record)
 
-
-# In[19]:
-
-
 #let's preview the encoded feature
 data_df.record
-
-
-# In[20]:
-
 
 #more preprocessing
 data_df = data_df.drop(columns=['country_code', 'country', 'year'])
 X = data_df.drop(columns = 'QScore')
 y = data_df['QScore']
 
-
-# In[21]:
-
-
 #split the data into training and testing sets
 from sklearn.model_selection import train_test_split
 x_train, x_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=0)
 y_train.value_counts()
 
-
-# In[22]:
-
-
 #installing imblearn module (uncomment the pip command to install imblearn)
 #!pip install imblearn
-
-
-# In[23]:
-
 
 #encode categorical variable
 #from sklearn.preprocessing import LabelEncoder
@@ -174,21 +92,8 @@ y_train.value_counts()
 #x_train.record = encoder.fit_transform(x_train.record)
 #x_test.record = encoder.transform(x_test.record)
 
-
-# In[24]:
-
-
 #the encoded feature
 x_train.record
-
-
-# In[25]:
-
-
-#
-
-
-# In[26]:
 
 
 #There is still an imbalance in the class distribution. For this, we use SMOTE only on the training data to handle this.
@@ -199,9 +104,7 @@ x_train_balanced, y_balanced = smote.fit_sample(x_train, y_train)
 y_train.value_counts()
 
 
-# In[27]:
-
-
+#min max scaler
 from sklearn.preprocessing import MinMaxScaler
 scaler = MinMaxScaler()
 normalised_train_df = scaler.fit_transform(x_train_balanced.drop(columns=['record']))
@@ -209,22 +112,10 @@ normalised_train_df = pd.DataFrame(normalised_train_df, columns=x_train_balanced
 normalised_train_df['record'] = x_train_balanced['record']
 
 
-# In[28]:
-
-
-normalised_train_df
-
-
-# In[29]:
-
-
 x_test = x_test.reset_index(drop=True)
 normalised_test_df = scaler.transform(x_test.drop(columns=['record']))
 normalised_test_df = pd.DataFrame(normalised_test_df, columns=x_test.drop(columns=['record']).columns)
 normalised_test_df['record'] = x_test['record']
-
-
-# In[30]:
 
 
 #Logistic Regression
@@ -252,9 +143,6 @@ scores = cross_val_score(log_reg, normalised_train_df, y_balanced, cv=5,
 scores
 
 
-# In[32]:
-
-
 #confusion matrix
 from sklearn.metrics import recall_score, accuracy_score, precision_score, f1_score, confusion_matrix
 new_predictions = log_reg.predict(normalised_test_df)
@@ -264,19 +152,12 @@ cnf_mat
 
 # METRICS 
 
-# In[33]:
-
-
 #Accuracy
 accuracy = accuracy_score(y_true = y_test, y_pred = new_predictions)
 print('Accuracy: {}'.format(round(accuracy*100, 2)))
 
-
-# In[34]:
-
-
 #precision
-precision = precision_score(y_true=y_test, y_pred=new_predictions,                            pos_label='2A')
+precision = precision_score(y_true=y_test, y_pred=new_predictions, pos_label='2A')
 print('Presicion: {}'.format(round(precision*100), 2))
 
 
@@ -284,7 +165,7 @@ print('Presicion: {}'.format(round(precision*100), 2))
 
 
 #recall
-recall = recall_score(y_true=y_test, y_pred=new_predictions,                            pos_label='2A')
+recall = recall_score(y_true=y_test, y_pred=new_predictions, pos_label='2A')
 print('Recall: {}'.format(round(recall*100), 2))
 
 
@@ -296,9 +177,6 @@ f1 = f1_score(y_true=y_test, y_pred=new_predictions, pos_label='2A')
 print('F1: {}'.format(round(f1*100), 2))
 
 
-# In[37]:
-
-
 #K-Fold
 from sklearn.model_selection import KFold
 
@@ -308,16 +186,13 @@ f1_scores = []
 
 #run for every split
 for train_index, test_index in kf.split(normalised_train_df):
-    x_train, x_test = normalised_train_df.iloc[train_index],                      normalised_train_df.iloc[test_index]
-    y_train, y_test = y_balanced[train_index],                      y_balanced[test_index]
+    x_train, x_test = normalised_train_df.iloc[train_index], normalised_train_df.iloc[test_index]
+    y_train, y_test = y_balanced[train_index], y_balanced[test_index]
     model = LogisticRegression().fit(x_train, y_train)
     #save result to list
     f1_scores.append(f1_score(y_true = y_test, y_pred = model.predict(x_test),
                             pos_label = '2A')*100)
 f1_scores
-
-
-# In[38]:
 
 
 #StratifiedKFold
@@ -326,8 +201,8 @@ skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=1)
 f1_scores = []
 #run for every split
 for train_index, test_index in skf.split(normalised_train_df, y_balanced):
-    x_train, x_test = np.array(normalised_train_df)[train_index],                      np.array(normalised_train_df)[test_index]
-    y_train, y_test = y_balanced[train_index],                      y_balanced[test_index]
+    x_train, x_test = np.array(normalised_train_df)[train_index], np.array(normalised_train_df)[test_index]
+    y_train, y_test = y_balanced[train_index], y_balanced[test_index]
     model = LogisticRegression().fit(x_train, y_train)
     #save result to list
     f1_scores.append(f1_score(y_true = y_test, y_pred = model.predict(x_test),
@@ -335,18 +210,12 @@ for train_index, test_index in skf.split(normalised_train_df, y_balanced):
 f1_scores
 
 
-# In[39]:
-
-
 #LeaveOneOut
 from sklearn.model_selection import LeaveOneOut
 loo = LeaveOneOut()
-scores = cross_val_score(LogisticRegression(), normalised_train_df, y_balanced,                         cv=loo, scoring='f1_macro')
+scores = cross_val_score(LogisticRegression(), normalised_train_df, y_balanced, cv=loo, scoring='f1_macro')
 average_score = scores.mean() * 100
 average_score
-
-
-# In[ ]:
 
 
 # Tree-Based Methods and The Support Vector Machine
